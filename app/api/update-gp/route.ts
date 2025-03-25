@@ -1,10 +1,9 @@
 import { createClient } from '@supabase/supabase-js';
 import { NextResponse } from 'next/server';
 import type { Database } from '@/lib/database.types';
+import { SUPABASE_URL, SUPABASE_ANON_KEY } from '@/app/env';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
-const supabase = createClient<Database>(supabaseUrl, supabaseKey);
+const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 export async function GET() {
   try {
