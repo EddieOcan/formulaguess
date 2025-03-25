@@ -18,6 +18,14 @@ const bricolage = Bricolage_Grotesque({
 export const metadata: Metadata = {
   title: "Formula Guess",
   description: "Indovina i risultati del Gran Premio di Formula 1",
+  manifest: '/manifest.json',
+  themeColor: '#FF1E1E',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'default',
+    title: 'FormulaGuess',
+  },
+  viewport: 'width=device-width, initial-scale=1, maximum-scale=1',
 }
 
 export default function RootLayout({
@@ -27,6 +35,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="it" suppressHydrationWarning>
+      <head>
+        <link rel="apple-touch-icon" href="/placeholder-logo.png"></link>
+        <meta name="apple-mobile-web-app-capable" content="yes"></meta>
+        <meta name="apple-mobile-web-app-status-bar-style" content="default"></meta>
+      </head>
       <body className={`${bricolage.variable} font-sans min-h-screen bg-neutral-50 dark:bg-neutral-900 antialiased`}>
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
           <SupabaseProvider>

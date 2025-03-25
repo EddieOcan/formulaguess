@@ -3,6 +3,9 @@ import { NextResponse } from 'next/server';
 import type { Database } from '@/lib/database.types';
 import { SUPABASE_URL, SUPABASE_ANON_KEY } from '@/app/env';
 
+// Aggiunto per supportare l'export statico
+export const dynamic = "force-static";
+
 const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 export async function GET() {
