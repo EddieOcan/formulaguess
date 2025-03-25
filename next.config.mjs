@@ -10,16 +10,6 @@ const nextConfig = {
   // Ottimizza per la produzione evitando log di sviluppo
   reactStrictMode: true,
   
-  // Ignora gli errori di tipo durante il build
-  typescript: {
-    ignoreBuildErrors: true,
-  },
-  
-  // Ignora anche gli errori di lint
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
-  
   // Migliora la gestione di larghe dipendenze condivise
   modularizeImports: {
     "lucide-react": {

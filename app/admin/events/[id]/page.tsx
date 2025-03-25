@@ -29,6 +29,13 @@ import Link from "next/link"
 type GrandPrix = Database["public"]["Tables"]["grand_prix"]["Row"]
 type Event = Database["public"]["Tables"]["events"]["Row"]
 
+// Tipo corretto per i params della pagina
+type EventsPageParams = {
+  params: {
+    id: string
+  }
+}
+
 // Componente interno che gestisce la logica
 function EventsContent({ gpId }: { gpId: { id: string } }) {
   const [id, setId] = useState<string>("");
@@ -308,7 +315,7 @@ function EventsContent({ gpId }: { gpId: { id: string } }) {
 }
 
 // Componente principale che estrae l'ID e passa al componente interno
-export default function EventsPage({ params }: { params: { id: string } }) {
+export default function EventsPage({ params }: EventsPageParams) {
   // Non usiamo useMemo ma piuttosto uno state per prevenire accesso sincrono
   const [gpId, setGpId] = useState<{ id: string } | null>(null);
   
