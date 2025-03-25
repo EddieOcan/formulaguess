@@ -1,0 +1,4 @@
+export const SUPABASE_URL = "https://eqshiljwchzdrizdojcp.supabase.co"
+export const SUPABASE_ANON_KEY =
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVxc2hpbGp3Y2h6ZHJpemRvamNwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI3MjM0NTIsImV4cCI6MjA1ODI5OTQ1Mn0.cdcG9BfG8OWYSaD7SqW-HfANQgUwpWl2VKKMkmp_S3Q"
+
