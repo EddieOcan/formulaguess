@@ -7,6 +7,7 @@ import { Toaster } from "@/components/ui/toaster"
 import Header from "@/components/header"
 import Footer from "@/components/footer"
 import { SupabaseProvider } from "@/lib/supabase-provider"
+import AppStateWrapper from "./components/app-state-wrapper"
 
 const bricolage = Bricolage_Grotesque({ 
   subsets: ["latin"], 
@@ -29,14 +30,16 @@ export default function RootLayout({
       <body className={`${bricolage.variable} font-sans min-h-screen bg-neutral-50 dark:bg-neutral-900 antialiased`}>
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
           <SupabaseProvider>
-            <div className="flex flex-col min-h-screen">
-              <Header />
-              <main className="flex-1 w-full pb-12">
-                {children}
-              </main>
-              <Footer />
-            </div>
-            <Toaster />
+            <AppStateWrapper>
+              <div className="flex flex-col min-h-screen">
+                <Header />
+                <main className="flex-1 w-full pb-12">
+                  {children}
+                </main>
+                <Footer />
+              </div>
+              <Toaster />
+            </AppStateWrapper>
           </SupabaseProvider>
         </ThemeProvider>
       </body>

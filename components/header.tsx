@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/navigation-menu"
 import { ModeToggle } from "@/components/mode-toggle"
 import { useSupabase } from "@/lib/supabase-provider"
-import { useEffect, useState } from "react"
+import { useEffect, useState, useCallback } from "react"
 import type { User as SupabaseUser } from "@supabase/supabase-js"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import {
@@ -24,39 +24,73 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { useRouter } from "next/navigation"
-import { Flag, Menu, X, Trophy, Home, User, LogOut, Settings, BarChart3 } from "lucide-react"
+import { Flag, Menu, X, Trophy, Home, User, LogOut, Settings, BarChart3, RefreshCw } from "lucide-react"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { Skeleton } from "@/components/ui/skeleton"
 import { cn } from "@/lib/utils"
 
 export default function Header() {
-  const { supabase, isAdmin, isLoading } = useSupabase()
+  const { supabase, isAdmin, isLoading, refreshUserState } = useSupabase()
   const [user, setUser] = useState<SupabaseUser | null>(null)
   const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const [isRefreshing, setIsRefreshing] = useState(false)
   const router = useRouter()
 
-  useEffect(() => {
-    const getUser = async () => {
+  const getUser = useCallback(async () => {
+    try {
       const {
         data: { user },
+        error,
       } = await supabase.auth.getUser()
+      
+      if (error) {
+        console.error("Error fetching user:", error)
+        return
+      }
+      
       setUser(user)
+    } catch (error) {
+      console.error("Failed to get user:", error)
     }
+  }, [supabase])
 
+  useEffect(() => {
     getUser()
 
     const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
       setUser(session?.user ?? null)
     })
 
+    // Controlla lo stato dell'utente ogni volta che la finestra torna in focus
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        getUser()
+      }
+    }
+
+    document.addEventListener("visibilitychange", handleVisibilityChange)
+
     return () => {
       authListener.subscription.unsubscribe()
+      document.removeEventListener("visibilitychange", handleVisibilityChange)
     }
-  }, [supabase])
+  }, [supabase, getUser])
 
   const handleSignOut = async () => {
     await supabase.auth.signOut()
     router.push("/")
+  }
+
+  const handleRefresh = async () => {
+    setIsRefreshing(true)
+    try {
+      await refreshUserState()
+      await getUser()
+    } catch (error) {
+      console.error("Error refreshing user state:", error)
+    } finally {
+      setIsRefreshing(false)
+    }
   }
 
   if (isLoading) {
@@ -115,6 +149,17 @@ export default function Header() {
           </nav>
 
           <div className="flex items-center gap-3">
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="h-9 w-9 rounded-full" 
+              onClick={handleRefresh}
+              disabled={isRefreshing}
+              title="Aggiorna stato"
+            >
+              <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+            </Button>
+            
             <ModeToggle />
             
             {user ? (
@@ -176,6 +221,17 @@ export default function Header() {
 
         {/* Menu mobile */}
         <div className="md:hidden flex items-center gap-4">
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="h-9 w-9 rounded-full" 
+            onClick={handleRefresh}
+            disabled={isRefreshing}
+            title="Aggiorna stato"
+          >
+            <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+          </Button>
+          
           <Sheet open={isMenuOpen} onOpenChange={setIsMenuOpen}>
             <SheetTrigger asChild>
               <Button variant="ghost" size="icon" className="h-10 w-10 rounded-full">
