@@ -33,64 +33,36 @@ export default function Header() {
   const { supabase, isAdmin, isLoading } = useSupabase()
   const [user, setUser] = useState<SupabaseUser | null>(null)
   const [isMenuOpen, setIsMenuOpen] = useState(false)
-  const [isMounted, setIsMounted] = useState(false)
   const router = useRouter()
 
   useEffect(() => {
-    setIsMounted(true)
-    return () => setIsMounted(false)
-  }, [])
-
-  useEffect(() => {
-    if (!isMounted) return
-    
-    let isActive = true
-    
     const getUser = async () => {
-      try {
-        const {
-          data: { user },
-        } = await supabase.auth.getUser()
-        
-        if (isActive) {
-          setUser(user)
-        }
-      } catch (error) {
-        console.error("Error fetching user:", error)
-      }
+      const {
+        data: { user },
+      } = await supabase.auth.getUser()
+      setUser(user)
     }
 
     getUser()
 
     const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (isActive) {
-        setUser(session?.user ?? null)
-      }
+      setUser(session?.user ?? null)
     })
 
     return () => {
-      isActive = false
       authListener.subscription.unsubscribe()
     }
-  }, [supabase, isMounted])
+  }, [supabase])
 
   const handleSignOut = async () => {
-    try {
-      await supabase.auth.signOut()
-      router.push("/")
-    } catch (error) {
-      console.error("Error signing out:", error)
-    }
-  }
-  
-  if (!isMounted) {
-    return null
+    await supabase.auth.signOut()
+    router.push("/")
   }
 
   if (isLoading) {
     return (
-      <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container flex h-16 items-center justify-between px-4">
+      <header className="f1-header">
+        <div className="container flex h-16 items-center justify-between">
           <div className="flex items-center gap-2">
             <Skeleton className="h-8 w-8 rounded-full" />
             <Skeleton className="h-6 w-32" />
@@ -105,7 +77,7 @@ export default function Header() {
   }
 
   return (
-    <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <header className="f1-header">
       <div className="container mx-auto flex h-16 items-center justify-between px-4">
         <div className="flex items-center gap-2">
           <Link href="/" className="flex items-center gap-2 group">
@@ -116,6 +88,7 @@ export default function Header() {
           </Link>
         </div>
 
+        {/* Menu desktop */}
         <div className="hidden md:flex md:items-center md:gap-6">
           <nav className="flex items-center space-x-1 rounded-lg border bg-white/50 dark:bg-neutral-800/50 backdrop-blur-sm p-1 shadow-sm">
             <Link href="/" className="inline-flex items-center justify-center rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-[var(--f1-red)] hover:text-white focus:bg-[var(--f1-red)] focus:text-white focus:outline-none">
@@ -201,6 +174,7 @@ export default function Header() {
           </div>
         </div>
 
+        {/* Menu mobile */}
         <div className="md:hidden flex items-center gap-4">
           <Sheet open={isMenuOpen} onOpenChange={setIsMenuOpen}>
             <SheetTrigger asChild>

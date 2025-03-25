@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { createContext, useContext, useState, useEffect, useMemo } from "react"
+import { createContext, useContext, useState, useEffect } from "react"
 import { createClient } from "@supabase/supabase-js"
 import { useRouter } from "next/navigation"
 import type { Database } from "@/lib/database.types"
@@ -17,28 +17,14 @@ type SupabaseContext = {
 const Context = createContext<SupabaseContext | undefined>(undefined)
 
 // Crea un singleton client per evitare di creare più istanze
-const supabaseClient = createClient<Database>(SUPABASE_URL, SUPABASE_ANON_KEY, {
-  auth: {
-    persistSession: true,
-    autoRefreshToken: true,
-    detectSessionInUrl: true,
-  },
-})
+const supabaseClient = createClient<Database>(SUPABASE_URL, SUPABASE_ANON_KEY)
 
 export function SupabaseProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter()
   const [isAdmin, setIsAdmin] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
-  const [isMounted, setIsMounted] = useState(false)
 
   useEffect(() => {
-    setIsMounted(true)
-    return () => setIsMounted(false)
-  }, [])
-
-  useEffect(() => {
-    if (!isMounted) return
-
     const checkUser = async () => {
       setIsLoading(true)
       try {
@@ -85,25 +71,9 @@ export function SupabaseProvider({ children }: { children: React.ReactNode }) {
     return () => {
       authListener.subscription.unsubscribe()
     }
-  }, [router, isMounted])
+  }, [router])
 
-  // Utilizziamo useMemo per evitare ricreazioni inutili del context value
-  const contextValue = useMemo(
-    () => ({
-      supabase: supabaseClient,
-      isAdmin,
-      isLoading: !isMounted || isLoading,
-    }),
-    [isAdmin, isLoading, isMounted]
-  )
-
-  // Evita di renderizzare qualsiasi contenuto fino a quando il componente non è montato
-  // per prevenire errori di idratazione
-  if (!isMounted) {
-    return null
-  }
-
-  return <Context.Provider value={contextValue}>{children}</Context.Provider>
+  return <Context.Provider value={{ supabase: supabaseClient, isAdmin, isLoading }}>{children}</Context.Provider>
 }
 
 export const useSupabase = () => {

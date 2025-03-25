@@ -12,7 +12,6 @@ const bricolage = Bricolage_Grotesque({
   subsets: ["latin"], 
   variable: "--font-bricolage",
   weight: ["300", "400", "500", "700"],
-  display: 'swap',
 })
 
 export const metadata: Metadata = {
@@ -27,11 +26,8 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="it" suppressHydrationWarning>
-      <head>
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-      </head>
       <body className={`${bricolage.variable} font-sans min-h-screen bg-neutral-50 dark:bg-neutral-900 antialiased`}>
-        <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
+        <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
           <SupabaseProvider>
             <div className="flex flex-col min-h-screen">
               <Header />
@@ -43,25 +39,6 @@ export default function RootLayout({
             <Toaster />
           </SupabaseProvider>
         </ThemeProvider>
-
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-              (function () {
-                function applyTheme() {
-                  try {
-                    const storedTheme = localStorage.getItem('theme');
-                    const theme = storedTheme || 'light';
-                    document.documentElement.classList.toggle('dark', theme === 'dark');
-                  } catch (e) {
-                    console.error('Failed to apply theme:', e);
-                  }
-                }
-                applyTheme();
-              })();
-            `,
-          }}
-        />
       </body>
     </html>
   )

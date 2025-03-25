@@ -307,46 +307,8 @@ function EventsContent({ gpId }: { gpId: { id: string } }) {
   )
 }
 
-// Componente principale che estrae l'ID e passa al componente interno
-export default function EventsPage({ params }) {
-  // Componente interno che gestisce la logica
-  function EventsContent({ gpId }) {
-    // ... existing code ...
-  }
-  
-  // Non usiamo useMemo ma piuttosto uno state per prevenire accesso sincrono
-  const [gpId, setGpId] = useState(null);
-  
-  // Aggiorniamo lo state in un useEffect per evitare accesso sincrono
-  useEffect(() => {
-    if (params?.id) {
-      setGpId({ id: params.id });
-    }
-  }, [params]);
-  
-  // Renderizziamo il componente interno solo quando gpId è disponibile
-  if (!gpId) {
-    return (
-      <div className="container py-10">
-        <Skeleton className="h-10 w-1/3 mb-6" />
-        <Skeleton className="h-6 w-1/4 mb-4" />
-        <div className="space-y-6">
-          {[1, 2, 3, 4].map((i) => (
-            <Card key={i}>
-              <CardHeader>
-                <Skeleton className="h-5 w-1/3" />
-                <Skeleton className="h-4 w-1/2" />
-              </CardHeader>
-              <CardContent>
-                <Skeleton className="h-10 w-full" />
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      </div>
-    );
-  }
-  
-  return <EventsContent gpId={gpId} />;
+// Componente principale che passa l'oggetto params al componente interno
+export default function EventsPage({ params }: { params: { id: string } }) {
+  return <EventsContent gpId={params} />
 }
 
