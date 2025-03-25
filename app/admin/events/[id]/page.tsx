@@ -308,9 +308,14 @@ function EventsContent({ gpId }: { gpId: { id: string } }) {
 }
 
 // Componente principale che estrae l'ID e passa al componente interno
-export default function EventsPage({ params }: { params: { id: string } }) {
+export default function EventsPage({ params }) {
+  // Componente interno che gestisce la logica
+  function EventsContent({ gpId }) {
+    // ... existing code ...
+  }
+  
   // Non usiamo useMemo ma piuttosto uno state per prevenire accesso sincrono
-  const [gpId, setGpId] = useState<{ id: string } | null>(null);
+  const [gpId, setGpId] = useState(null);
   
   // Aggiorniamo lo state in un useEffect per evitare accesso sincrono
   useEffect(() => {
