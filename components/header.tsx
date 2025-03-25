@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/navigation-menu"
 import { ModeToggle } from "@/components/mode-toggle"
 import { useSupabase } from "@/lib/supabase-provider"
-import { useEffect, useState, useCallback } from "react"
+import { useEffect, useState, useCallback, useRef } from "react"
 import type { User as SupabaseUser } from "@supabase/supabase-js"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import {
@@ -24,20 +24,38 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { useRouter } from "next/navigation"
-import { Flag, Menu, X, Trophy, Home, User, LogOut, Settings, BarChart3, RefreshCw } from "lucide-react"
+import { Flag, Menu, X, Trophy, Home, User, LogOut, Settings, BarChart3, RefreshCw, AlertCircle } from "lucide-react"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { Skeleton } from "@/components/ui/skeleton"
 import { cn } from "@/lib/utils"
+import { useToast } from "@/hooks/use-toast"
 
 export default function Header() {
   const { supabase, isAdmin, isLoading, refreshUserState } = useSupabase()
   const [user, setUser] = useState<SupabaseUser | null>(null)
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isRefreshing, setIsRefreshing] = useState(false)
+  const [hasDataLoadError, setHasDataLoadError] = useState(false)
   const router = useRouter()
+  const { toast } = useToast()
+  const mountedRef = useRef(false)
+  const loadCheckTimerRef = useRef<NodeJS.Timeout | null>(null)
+
+  // Funzione per verificare se i dati sono caricati correttamente
+  const checkDataLoaded = useCallback(() => {
+    // Se dopo 3 secondi dal montaggio del componente ancora non abbiamo i dati utente
+    // quando dovremmo averli, segnaliamo un errore
+    if (mountedRef.current && !isLoading && !user && supabase) {
+      console.log("Possibile errore di caricamento dati utente")
+      setHasDataLoadError(true)
+    } else {
+      setHasDataLoadError(false)
+    }
+  }, [isLoading, user, supabase])
 
   const getUser = useCallback(async () => {
     try {
+      setIsRefreshing(true)
       const {
         data: { user },
         error,
@@ -45,19 +63,33 @@ export default function Header() {
       
       if (error) {
         console.error("Error fetching user:", error)
+        setHasDataLoadError(true)
         return
       }
       
       setUser(user)
+      setHasDataLoadError(false)
     } catch (error) {
       console.error("Failed to get user:", error)
+      setHasDataLoadError(true)
+    } finally {
+      setIsRefreshing(false)
     }
   }, [supabase])
 
+  // Forza un ricaricamento completo della pagina
+  const forceReload = useCallback(() => {
+    if (typeof window !== 'undefined') {
+      window.location.reload()
+    }
+  }, [])
+
   useEffect(() => {
+    mountedRef.current = true
     getUser()
 
     const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log("Auth state changed:", event)
       setUser(session?.user ?? null)
     })
 
@@ -68,13 +100,20 @@ export default function Header() {
       }
     }
 
+    // Verifica periodicamente se i dati sono stati caricati correttamente
+    loadCheckTimerRef.current = setTimeout(checkDataLoaded, 3000)
+
     document.addEventListener("visibilitychange", handleVisibilityChange)
 
     return () => {
+      mountedRef.current = false
       authListener.subscription.unsubscribe()
       document.removeEventListener("visibilitychange", handleVisibilityChange)
+      if (loadCheckTimerRef.current) {
+        clearTimeout(loadCheckTimerRef.current)
+      }
     }
-  }, [supabase, getUser])
+  }, [supabase, getUser, checkDataLoaded])
 
   const handleSignOut = async () => {
     await supabase.auth.signOut()
@@ -86,13 +125,30 @@ export default function Header() {
     try {
       await refreshUserState()
       await getUser()
+      
+      toast({
+        title: "Aggiornamento completato",
+        description: "I dati sono stati aggiornati con successo",
+        duration: 3000,
+      })
     } catch (error) {
       console.error("Error refreshing user state:", error)
+      
+      toast({
+        title: "Errore di aggiornamento",
+        description: "Si è verificato un errore durante l'aggiornamento. Ricarica la pagina.",
+        variant: "destructive",
+        duration: 5000,
+      })
+      
+      // Se c'è un errore grave, forza il ricaricamento
+      setTimeout(forceReload, 2000)
     } finally {
       setIsRefreshing(false)
     }
   }
 
+  // Se il componente è in caricamento iniziale, mostra lo skeleton
   if (isLoading) {
     return (
       <header className="f1-header">
@@ -104,6 +160,36 @@ export default function Header() {
           <div className="flex items-center gap-4">
             <Skeleton className="h-10 w-24" />
             <Skeleton className="h-10 w-10 rounded-full" />
+          </div>
+        </div>
+      </header>
+    )
+  }
+
+  // Se c'è un errore di caricamento dati, mostra un'interfaccia di fallback con pulsante di ricaricamento
+  if (hasDataLoadError) {
+    return (
+      <header className="f1-header">
+        <div className="container flex h-16 items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Link href="/" className="flex items-center gap-2">
+              <div className="bg-[var(--f1-red)] text-white p-1.5 rounded-md">
+                <Flag className="h-5 w-5" />
+              </div>
+              <span className="text-xl font-bold f1-gradient-text">Formula Guess</span>
+            </Link>
+          </div>
+          
+          <div className="flex items-center gap-3">
+            <Button 
+              variant="destructive" 
+              size="sm" 
+              className="rounded-lg flex items-center gap-2" 
+              onClick={forceReload}
+            >
+              <AlertCircle className="h-4 w-4" />
+              <span>Ricarica pagina</span>
+            </Button>
           </div>
         </div>
       </header>
@@ -150,14 +236,14 @@ export default function Header() {
 
           <div className="flex items-center gap-3">
             <Button 
-              variant="ghost" 
+              variant={isRefreshing ? "outline" : "ghost"} 
               size="icon" 
-              className="h-9 w-9 rounded-full" 
+              className={`h-9 w-9 rounded-full ${isRefreshing ? 'border-[var(--f1-red)]' : ''}`}
               onClick={handleRefresh}
               disabled={isRefreshing}
               title="Aggiorna stato"
             >
-              <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+              <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin text-[var(--f1-red)]' : ''}`} />
             </Button>
             
             <ModeToggle />
@@ -222,14 +308,14 @@ export default function Header() {
         {/* Menu mobile */}
         <div className="md:hidden flex items-center gap-4">
           <Button 
-            variant="ghost" 
+            variant={isRefreshing ? "outline" : "ghost"} 
             size="icon" 
-            className="h-9 w-9 rounded-full" 
+            className={`h-9 w-9 rounded-full ${isRefreshing ? 'border-[var(--f1-red)]' : ''}`}
             onClick={handleRefresh}
             disabled={isRefreshing}
             title="Aggiorna stato"
           >
-            <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+            <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin text-[var(--f1-red)]' : ''}`} />
           </Button>
           
           <Sheet open={isMenuOpen} onOpenChange={setIsMenuOpen}>
