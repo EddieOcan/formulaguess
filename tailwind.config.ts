@@ -1,15 +1,15 @@
 import type { Config } from "tailwindcss"
+import { fontFamily } from "tailwindcss/defaultTheme"
 
-const config = {
+const config: Config = {
   darkMode: ["class"],
   content: [
     "./pages/**/*.{ts,tsx}",
     "./components/**/*.{ts,tsx}",
     "./app/**/*.{ts,tsx}",
     "./src/**/*.{ts,tsx}",
-    "*.{js,ts,jsx,tsx,mdx}",
+    "./lib/**/*.{ts,tsx}",
   ],
-  prefix: "",
   theme: {
     container: {
       center: true,
@@ -19,8 +19,9 @@ const config = {
       },
     },
     extend: {
-      screens: {
-        xs: "480px",
+      fontFamily: {
+        sans: ["var(--font-inter)", ...fontFamily.sans],
+        heading: ["var(--font-work-sans)", ...fontFamily.sans],
       },
       colors: {
         border: "hsl(var(--border))",
@@ -56,10 +57,14 @@ const config = {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
-        // Aggiungiamo il colore success
-        success: {
-          DEFAULT: "hsl(var(--success))",
-          foreground: "hsl(var(--success-foreground))",
+        // Aggiungi i colori di Formula 1
+        f1: {
+          red: "var(--f1-red)",
+          "dark-red": "var(--f1-dark-red)",
+          black: "var(--f1-black)",
+          "dark-grey": "var(--f1-dark-grey)",
+          grey: "var(--f1-grey)",
+          "light-grey": "var(--f1-light-grey)",
         },
       },
       borderRadius: {
@@ -76,15 +81,103 @@ const config = {
           from: { height: "var(--radix-accordion-content-height)" },
           to: { height: "0" },
         },
+        "fade-in": {
+          "0%": { opacity: "0" },
+          "100%": { opacity: "1" },
+        },
+        "fade-out": {
+          "0%": { opacity: "1" },
+          "100%": { opacity: "0" },
+        },
+        "slide-in-right": {
+          "0%": { transform: "translateX(100%)" },
+          "100%": { transform: "translateX(0)" },
+        },
+        "slide-out-right": {
+          "0%": { transform: "translateX(0)" },
+          "100%": { transform: "translateX(100%)" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
+        "fade-in": "fade-in 0.2s ease-out",
+        "fade-out": "fade-out 0.2s ease-out",
+        "slide-in-right": "slide-in-right 0.2s ease-out",
+        "slide-out-right": "slide-out-right 0.2s ease-out",
       },
+      typography: {
+        DEFAULT: {
+          css: {
+            maxWidth: '65ch',
+            color: 'var(--tw-prose-body)',
+            '[class~="lead"]': {
+              color: 'var(--tw-prose-lead)',
+            },
+            a: {
+              color: 'var(--f1-red)',
+              textDecoration: 'underline',
+              fontWeight: '500',
+            },
+            strong: {
+              color: 'var(--tw-prose-bold)',
+              fontWeight: '600',
+            },
+            'a strong': {
+              color: 'var(--f1-red)',
+            },
+            'blockquote strong': {
+              color: 'inherit',
+            },
+            'thead th strong': {
+              color: 'inherit',
+            },
+            ol: {
+              listStyleType: 'decimal',
+            },
+            'ol[type="A"]': {
+              listStyleType: 'upper-alpha',
+            },
+            'ol[type="a"]': {
+              listStyleType: 'lower-alpha',
+            },
+            'ol[type="A" s]': {
+              listStyleType: 'upper-alpha',
+            },
+            'ol[type="a" s]': {
+              listStyleType: 'lower-alpha',
+            },
+            'ol[type="I"]': {
+              listStyleType: 'upper-roman',
+            },
+            'ol[type="i"]': {
+              listStyleType: 'lower-roman',
+            },
+            'ol[type="I" s]': {
+              listStyleType: 'upper-roman',
+            },
+            'ol[type="i" s]': {
+              listStyleType: 'lower-roman',
+            },
+            'ol[type="1"]': {
+              listStyleType: 'decimal',
+            },
+            ul: {
+              listStyleType: 'disc',
+            },
+            'ol > li::marker': {
+              fontWeight: '400',
+              color: 'var(--tw-prose-counters)',
+            },
+            'ul > li::marker': {
+              color: 'var(--tw-prose-bullets)',
+            },
+          }
+        }
+      }
     },
   },
   plugins: [require("tailwindcss-animate")],
-} satisfies Config
-
+}
 export default config
 

@@ -10,13 +10,19 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import type { Database } from "@/lib/database.types"
 import { useToast } from "@/components/ui/use-toast"
 import { Skeleton } from "@/components/ui/skeleton"
-import { AlertCircle, CheckCircle2, PlusCircle, Pencil } from "lucide-react"
+import { AlertCircle, CheckCircle2, PlusCircle, Pencil, Clock, Check, X } from "lucide-react"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import Image from "next/image"
 import { cn } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
+import { motion, AnimatePresence } from "framer-motion"
+import ReactCountryFlag from "react-country-flag"
 
-type GrandPrix = Database["public"]["Tables"]["grand_prix"]["Row"]
+type GrandPrix = Database["public"]["Tables"]["grand_prix"]["Row"] & {
+  image_url?: string;
+  location?: string;
+  country_code?: string;
+}
 type Event = Database["public"]["Tables"]["events"]["Row"]
 type Driver = Database["public"]["Tables"]["drivers"]["Row"]
 type Prediction = Database["public"]["Tables"]["predictions"]["Row"]
@@ -45,33 +51,91 @@ const DriverCard = ({ driver }: { driver: Driver }) => {
   const driverImagePath = `/drivers/${driver.name.toLowerCase().replace(/\s+/g, "-")}.png`
 
   return (
-    <div className={cn("w-full shadow-md overflow-hidden", teamColor.lighter)}>
-      <div className="relative p-4">
-        <div className="relative flex flex-col items-center">
-          <div className="relative h-24 w-24 overflow-hidden rounded-full border-2 border-white mb-3 bg-white">
-            <Image
-              src={driverImagePath || "/placeholder.svg"}
-              alt={driver.name}
-              width={96}
-              height={96}
-              className="object-cover"
-              onError={(e) => {
-                // Fallback se l'immagine non esiste
-                e.currentTarget.src = "/placeholder.svg?height=96&width=96"
-              }}
-            />
-          </div>
-          <div className="text-center">
-            <h3 className={cn("text-lg font-bold", teamColor.secondary)}>{driver.name}</h3>
-            <span className="inline-block bg-black/10 text-black text-xs px-3 py-1 rounded-full mt-2 backdrop-blur-sm">
-              {driver.team}
-            </span>
+    <div className={cn("flex items-center justify-between p-3 rounded-lg bg-white dark:bg-gray-900 shadow-sm border border-gray-100 dark:border-gray-800")}>
+      <div className="flex items-center">
+        <div className="relative h-12 w-12 overflow-hidden rounded-full border border-gray-200 dark:border-gray-700 bg-white mr-3">
+          <Image
+            src={driverImagePath || "/placeholder.svg"}
+            alt={driver.name}
+            width={48}
+            height={48}
+            className="object-cover"
+            onError={(e) => {
+              e.currentTarget.src = "/placeholder.svg?height=48&width=48"
+            }}
+          />
+        </div>
+        <div>
+          <h3 className="text-sm font-medium">{driver.name}</h3>
+          <div className="flex items-center mt-0.5">
+            <span className={cn("w-2 h-2 rounded-full mr-1", teamColor.primary)} />
+            <span className="text-xs text-gray-500 dark:text-gray-400">{driver.team}</span>
           </div>
         </div>
+      </div>
+      <div className={cn("px-2 py-1 rounded text-xs font-medium", teamColor.primary, teamColor.secondary)}>
+        Selezionato
       </div>
     </div>
   )
 }
+
+// Componente per la notifica di conferma
+const ConfirmationOverlay = ({ 
+  isVisible, 
+  message, 
+  onClose 
+}: { 
+  isVisible: boolean; 
+  message: string; 
+  onClose: () => void 
+}) => {
+  useEffect(() => {
+    if (isVisible) {
+      const timer = setTimeout(() => {
+        onClose();
+      }, 2000);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [isVisible, onClose]);
+
+  return (
+    <AnimatePresence>
+      {isVisible && (
+        <motion.div 
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+        >
+          <motion.div 
+            className="bg-white dark:bg-gray-900 rounded-lg shadow-2xl p-6 max-w-md mx-4 border border-gray-100 dark:border-gray-800"
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0.9, opacity: 0 }}
+          >
+            <div className="flex flex-col items-center text-center">
+              <div className="w-16 h-16 rounded-full bg-green-100 dark:bg-green-900 flex items-center justify-center mb-4">
+                <Check className="w-8 h-8 text-green-600 dark:text-green-400" />
+              </div>
+              <h3 className="text-xl font-medium mb-2">Salvato con successo!</h3>
+              <p className="text-gray-500 dark:text-gray-400 mb-4">{message}</p>
+              <Button 
+                variant="outline"
+                size="sm"
+                onClick={onClose}
+                className="rounded-md"
+              >
+                Chiudi
+              </Button>
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+};
 
 // Wrapper component to handle params
 function PredictionsContent({ gpId }: { gpId: { id: string } }) {
@@ -88,6 +152,7 @@ function PredictionsContent({ gpId }: { gpId: { id: string } }) {
   const [userId, setUserId] = useState<string | null>(null)
   const [timeRemaining, setTimeRemaining] = useState<string>("")
   const [selectedDrivers, setSelectedDrivers] = useState<Record<string, Driver | null>>({})
+  const [showConfirmation, setShowConfirmation] = useState(false)
 
   useEffect(() => {
     if (!gpId.id) return; // Non procedere se id non è ancora disponibile
@@ -279,9 +344,14 @@ function PredictionsContent({ gpId }: { gpId: { id: string } }) {
       }
 
       toast({
-        title: "Previsioni salvate",
-        description: "Le tue previsioni sono state salvate con successo",
+        title: "Previsioni salvate con successo!",
+        description: "Le tue previsioni sono state registrate correttamente",
+        duration: 5000,
+        className: "bg-green-100 dark:bg-green-900 border-green-200 dark:border-green-800 text-green-800 dark:text-green-200",
       })
+      
+      // Mostra il messaggio di conferma a tutto schermo
+      setShowConfirmation(true)
     } catch (error: any) {
       toast({
         title: "Errore",
@@ -316,33 +386,55 @@ function PredictionsContent({ gpId }: { gpId: { id: string } }) {
   }
 
   return (
-    <div className="container py-10">
-      <h1 className="text-3xl font-bold mb-2 text-center">
-        <span className="bg-gradient-to-r from-[#FF1801] to-[#E10600] text-transparent bg-clip-text">
-          {grandPrix?.name}
-        </span>
+    <div className="container max-w-3xl mx-auto py-10 px-4">
+      {/* Overlay di conferma */}
+      <ConfirmationOverlay 
+        isVisible={showConfirmation}
+        message="Le tue previsioni sono state salvate correttamente"
+        onClose={() => setShowConfirmation(false)}
+      />
+      
+      <h1 className="text-2xl font-medium mb-2 text-center flex items-center justify-center gap-2">
+        {grandPrix?.country_code && (
+          <ReactCountryFlag 
+            countryCode={grandPrix.country_code} 
+            svg 
+            style={{
+              width: '1.5em',
+              height: '1.5em',
+              borderRadius: '50%',
+              objectFit: 'cover',
+              boxShadow: '0 1px 3px rgba(0,0,0,0.12)'
+            }}
+            title={grandPrix.country_code}
+          />
+        )}
+        Previsioni: <span className="text-[#e10600]">{grandPrix?.name}</span>
       </h1>
-      <p className="text-muted-foreground mb-6 text-center">Tempo rimanente: <span className="font-semibold">{timeRemaining}</span></p>
+      <p className="text-sm text-gray-500 dark:text-gray-400 mb-6 text-center flex items-center justify-center">
+        <Clock className="h-3.5 w-3.5 mr-1.5" />
+        Tempo rimanente: <span className="font-medium ml-1">{timeRemaining}</span>
+      </p>
 
-      <Alert className="mb-6 bg-[#FF1801]/10 border-[#FF1801]/20 text-[#FF1801]">
+      <Alert className="mb-6 bg-amber-50 dark:bg-amber-950/30 border-amber-200 dark:border-amber-800/50 text-amber-800 dark:text-amber-200">
         <AlertCircle className="h-4 w-4" />
         <AlertTitle>Importante</AlertTitle>
         <AlertDescription>
-          Puoi modificare le tue previsioni fino alla fine del Gran Premio. Assicurati di salvare le modifiche.
+          Scegli i piloti per ogni categoria di previsione e salva le tue scelte.
         </AlertDescription>
       </Alert>
 
-      <div className="space-y-6">
+      <div className="space-y-4">
         {events.map((event, i) => (
-          <Card key={i} className="overflow-hidden border border-gray-200 dark:border-gray-800 shadow-lg">
-            <div className="h-1 w-full bg-[#FF1801]"></div>
-            <CardHeader className="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 border-b">
-              <div className="flex justify-between items-center">
+          <Card key={i} className="overflow-hidden border border-gray-200 dark:border-gray-800 shadow-sm">
+            <div className="h-1 w-full bg-[#e10600]"></div>
+            <CardHeader className="p-4 bg-gray-50 dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800">
+              <div className="flex justify-between items-center gap-2">
                 <div>
-                  <CardTitle className="text-xl">{event.name}</CardTitle>
-                  <CardDescription className="flex items-center">
-                    <span className="mr-2">{event.description}</span> • 
-                    <Badge className="ml-2 bg-[#FF1801] text-white border-none">
+                  <CardTitle className="text-base">{event.name}</CardTitle>
+                  <CardDescription className="text-xs mt-1 flex items-center">
+                    {event.description}
+                    <Badge className="ml-2 text-[10px] bg-[#e10600] text-white border-none px-1.5 py-0">
                       {event.points} {event.points === 1 ? "punto" : "punti"}
                     </Badge>
                   </CardDescription>
@@ -352,7 +444,7 @@ function PredictionsContent({ gpId }: { gpId: { id: string } }) {
                   <Button 
                     variant="outline" 
                     size="sm" 
-                    className="h-8 px-2 bg-white/90 hover:bg-white text-black/80 font-medium border border-gray-200"
+                    className="h-7 px-2 text-xs bg-white/90 hover:bg-white text-gray-700 font-medium border border-gray-200"
                     onClick={() => {
                       // Reset della selezione per permettere una nuova scelta
                       setSelectedDrivers(prev => ({
@@ -365,45 +457,34 @@ function PredictionsContent({ gpId }: { gpId: { id: string } }) {
                       }));
                     }}
                   >
-                    <Pencil className="h-3.5 w-3.5 mr-1" />
-                    Modifica
+                    <Pencil className="h-3 w-3 mr-1" />
+                    Cambia
                   </Button>
                 )}
               </div>
             </CardHeader>
-            <CardContent className="p-0">
+            <CardContent className="p-4">
               {selectedDrivers[event.id] ? (
-                <div>
-                  <div className={cn("p-4 flex flex-col", teamColors[selectedDrivers[event.id]!.team].primary)}>
-                    <div className="flex items-center justify-between">
-                      <div className={teamColors[selectedDrivers[event.id]!.team].secondary}>
-                        <div className="text-xs font-semibold opacity-80">Previsione selezionata</div>
-                        <div className="font-bold text-lg">{selectedDrivers[event.id]!.name}</div>
-                      </div>
-                      <CheckCircle2 className={cn("h-5 w-5", teamColors[selectedDrivers[event.id]!.team].secondary)} />
-                    </div>
-                  </div>
-                  <div className="overflow-hidden">
-                    <DriverCard driver={selectedDrivers[event.id]!} />
-                  </div>
-                </div>
+                <DriverCard driver={selectedDrivers[event.id]!} />
               ) : (
-                <div className="p-6">
+                <div>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">Seleziona un pilota per questa previsione:</p>
                   <Select
                     value={predictions[event.id] || ""}
                     onValueChange={(value) => handlePredictionChange(event.id, value)}
                   >
-                    <SelectTrigger className="w-full rounded-lg border-gray-300 dark:border-gray-700">
+                    <SelectTrigger className="w-full rounded border-gray-200 dark:border-gray-700 text-sm h-10">
                       <SelectValue placeholder="Seleziona un pilota" />
                     </SelectTrigger>
                     <SelectContent>
                       {drivers.map((driver) => {
                         const teamColor = teamColors[driver.team] || { primary: "bg-gray-200", secondary: "text-black" }
                         return (
-                          <SelectItem key={driver.id} value={driver.name} className="flex items-center">
+                          <SelectItem key={driver.id} value={driver.name} className="flex items-center text-sm py-1.5">
                             <div className="flex items-center w-full">
-                              <span className={cn("w-3 h-3 rounded-full mr-2", teamColor.primary)} />
-                              {driver.name} ({driver.team})
+                              <span className={cn("w-2 h-2 rounded-full mr-2", teamColor.primary)} />
+                              <span className="font-medium">{driver.name}</span>
+                              <span className="ml-1.5 text-xs text-gray-500">({driver.team})</span>
                             </div>
                           </SelectItem>
                         )
@@ -416,21 +497,23 @@ function PredictionsContent({ gpId }: { gpId: { id: string } }) {
           </Card>
         ))}
 
-        <div className="flex justify-center gap-4 mt-8">
-          <Button 
-            variant="outline" 
-            onClick={() => router.push("/dashboard")}
-            className="rounded-full border-gray-300 dark:border-gray-700 px-6"
-          >
-            Annulla
-          </Button>
-          <Button 
-            onClick={savePredictions} 
-            disabled={saving}
-            className="rounded-full bg-[#FF1801] hover:bg-[#E10600] text-white border-none px-6 shadow-md"
-          >
-            {saving ? "Salvataggio..." : "Salva previsioni"}
-          </Button>
+        <div className="sticky bottom-4 flex justify-center mt-8 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm p-4 rounded-lg border border-gray-100 dark:border-gray-800 shadow-lg">
+          <div className="flex w-full gap-3">
+            <Button 
+              variant="outline"
+              onClick={() => router.push("/dashboard")}
+              className="w-full rounded-md border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300"
+            >
+              Torna indietro
+            </Button>
+            <Button 
+              onClick={savePredictions} 
+              disabled={saving}
+              className="w-full rounded-md bg-[#e10600] hover:bg-[#c00000] text-white border-none shadow-sm"
+            >
+              {saving ? "Salvataggio..." : "Salva previsione"}
+            </Button>
+          </div>
         </div>
       </div>
     </div>

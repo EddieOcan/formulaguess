@@ -2,76 +2,90 @@
 @tailwind components;
 @tailwind utilities;
 
-@layer base {
-  :root {
-    --background: 0 0% 100%;
-    --foreground: 240 10% 3.9%;
+/* Stili per prevenire FOUC (Flash of Unstyled Content) */
+html {
+  visibility: visible;
+  opacity: 1;
+}
 
-    /* Colori principali Formula 1 */
-    --primary: 357 100% 50%; /* Rosso F1 #FF1801 */
-    --primary-foreground: 0 0% 98%;
+/* Miglioramento dello stile per l'header e lo skeleton di caricamento */
+.sticky {
+  position: sticky;
+}
 
-    --secondary: 240 5.9% 10%; /* Nero/grigio scuro */
-    --secondary-foreground: 0 0% 98%;
+.backdrop-blur {
+  backdrop-filter: blur(8px);
+}
 
-    --card: 0 0% 100%;
-    --card-foreground: 240 10% 3.9%;
+/* Animazioni di transizione più fluide */
+* {
+  transition-property: color, background-color, border-color, text-decoration-color, fill, stroke;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+}
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 240 10% 3.9%;
+/* Animazioni più veloci per gli skeleton loader */
+.animate-pulse {
+  animation: pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
 
-    --muted: 240 4.8% 95.9%;
-    --muted-foreground: 240 3.8% 46.1%;
+/* Variabili per i colori del tema Formula 1 */
+:root {
+  --f1-red: #E10600;
+  --f1-dark-red: #B30500;
+  --f1-black: #15151E;
+  --f1-dark-blue: #001D3D;
+  --f1-light-blue: #003566;
+  --f1-yellow: #FFC600;
 
-    --accent: 12 76% 61%; /* Arancione/rosso secondario */
-    --accent-foreground: 0 0% 98%;
+  /* Palette Formula 1 */
+  --f1-dark-grey: #38383f;
+  --f1-grey: #67676c;
+  --f1-light-grey: #d0d0d2;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%;
+  /* Colori di base personalizzati */
+  --background: 0 0% 98%;
+  --foreground: 240 10% 3.9%;
+  --card: 0 0% 100%;
+  --card-foreground: 240 10% 3.9%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 240 10% 3.9%;
+  --primary: 358 100% 44%; /* Rosso F1 */
+  --primary-foreground: 0 0% 98%;
+  --secondary: 346 100% 40%; /* Rosso scuro F1 */
+  --secondary-foreground: 0 0% 98%;
+  --muted: 240 4.8% 95.9%;
+  --muted-foreground: 240 3.8% 46.1%;
+  --accent: 240 4.8% 95.9%;
+  --accent-foreground: 240 10% 3.9%;
+  --destructive: 0 84.2% 60.2%;
+  --destructive-foreground: 0 0% 98%;
+  --border: 240 5.9% 90%;
+  --input: 240 5.9% 90%;
+  --ring: 358 100% 44%;
+  --radius: 0.75rem;
+}
 
-    --success: 142 76% 36%;
-    --success-foreground: 0 0% 98%;
-
-    --border: 240 5.9% 90%;
-    --input: 240 5.9% 90%;
-    --ring: 240 5.9% 10%;
-
-    --radius: 0.8rem;
-  }
-
-  .dark {
-    --background: 240 10% 3.9%;
-    --foreground: 0 0% 98%;
-
-    /* Colori principali Formula 1 in dark mode */
-    --primary: 0 72% 51%; /* Rosso F1 */
-    --primary-foreground: 0 0% 98%;
-
-    --secondary: 240 3.7% 15.9%;
-    --secondary-foreground: 0 0% 98%;
-
-    --card: 240 10% 3.9%;
-    --card-foreground: 0 0% 98%;
-
-    --popover: 240 10% 3.9%;
-    --popover-foreground: 0 0% 98%;
-
-    --muted: 240 3.7% 15.9%;
-    --muted-foreground: 240 5% 64.9%;
-
-    --accent: 12 76% 55%; /* Arancione/rosso secondario */
-    --accent-foreground: 0 0% 98%;
-
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
-
-    --success: 142 76% 36%;
-    --success-foreground: 0 0% 98%;
-
-    --border: 240 3.7% 15.9%;
-    --input: 240 3.7% 15.9%;
-    --ring: 240 4.9% 83.9%;
-  }
+.dark {
+  --background: 240 10% 6%;
+  --foreground: 0 0% 98%;
+  --card: 240 10% 8%;
+  --card-foreground: 0 0% 98%;
+  --popover: 240 10% 8%;
+  --popover-foreground: 0 0% 98%;
+  --primary: 358 100% 44%;
+  --primary-foreground: 0 0% 98%;
+  --secondary: 346 100% 40%;
+  --secondary-foreground: 0 0% 98%;
+  --muted: 240 3.7% 15.9%;
+  --muted-foreground: 240 5% 64.9%;
+  --accent: 240 3.7% 15.9%;
+  --accent-foreground: 0 0% 98%;
+  --destructive: 0 62.8% 30.6%;
+  --destructive-foreground: 0 0% 98%;
+  --border: 240 3.7% 15.9%;
+  --input: 240 3.7% 15.9%;
+  --ring: 358 100% 44%;
 }
 
 @layer base {
@@ -80,7 +94,87 @@
   }
   body {
     @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+    font-family: var(--font-bricolage);
   }
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-bricolage);
+    font-weight: 500;
+  }
+  p, span, div, button, input, select, textarea {
+    font-family: var(--font-bricolage);
+  }
+}
+
+@layer components {
+  /* Card moderna con shadow sottile */
+  .card-modern {
+    @apply rounded-xl border border-[#e5e7eb] dark:border-neutral-800 bg-white dark:bg-neutral-900 shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden;
+  }
+
+  /* Bottone in stile Formula 1 */
+  .btn-f1 {
+    @apply bg-[var(--f1-red)] hover:bg-[var(--f1-dark-red)] text-white font-medium py-2 px-4 rounded-lg transition-all duration-200;
+  }
+
+  /* Stile del container principale */
+  .main-container {
+    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6;
+  }
+
+  /* Titolo della sezione in stile F1 */
+  .section-title {
+    @apply text-2xl md:text-3xl font-bold pb-2 mb-6 border-b border-[var(--f1-light-grey)];
+  }
+
+  /* Griglia responsive per dashboard */
+  .dashboard-grid {
+    @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6;
+  }
+
+  /* Badge per stato attivo/inattivo */
+  .badge-status {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+  }
+  .badge-active {
+    @apply badge-status bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200;
+  }
+  .badge-inactive {
+    @apply badge-status bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200;
+  }
+
+  /* Animazione sottile per feedback visivo */
+  .pulse-on-hover {
+    @apply transition-transform duration-200 hover:scale-[1.02];
+  }
+}
+
+/* Stili specifici per elementi della Formula 1 */
+.f1-gradient-text {
+  @apply bg-gradient-to-r from-[var(--f1-red)] to-[var(--f1-dark-red)] text-transparent bg-clip-text;
+}
+
+.f1-header {
+  @apply sticky top-0 z-50 w-full border-b border-gray-200 dark:border-gray-800 bg-white/80 dark:bg-neutral-900/80 backdrop-blur-sm;
+}
+
+/* Stili per le scrollbar più eleganti */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--f1-light-grey);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--f1-grey);
 }
 
 /* Stili Formula 1 */
@@ -124,10 +218,6 @@
     background-image: url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23000000' fill-opacity='0.05' fill-rule='evenodd'%3E%3Cpath d='M0 0h20v20H0V0zm20 20h20v20H20V20z'/%3E%3C/g%3E%3C/svg%3E");
   }
 
-  .f1-header {
-    @apply sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60;
-  }
-
   .f1-footer {
     @apply border-t bg-muted/30;
   }
@@ -161,10 +251,6 @@
 
   .f1-dashboard-section {
     @apply py-6 first:pt-0 last:pb-0;
-  }
-
-  .f1-dashboard-grid {
-    @apply grid gap-6 md:grid-cols-2 lg:grid-cols-3;
   }
 
   .f1-stats-card {
@@ -402,5 +488,32 @@
 
 .animate-slide-in {
   animation: slideIn 0.3s ease-out forwards;
+}
+
+/* Stili per prevenire layout shifts durante il caricamento */
+.layout-stable {
+  content-visibility: auto;
+  contain-intrinsic-size: auto;
+}
+
+/* Stile per lo skeleton loader */
+.skeleton-pulse {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.5s infinite;
+}
+
+@keyframes skeleton-loading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* Classe per la stabilità di layout */
+.stable-height {
+  min-height: 1em;
 }
 

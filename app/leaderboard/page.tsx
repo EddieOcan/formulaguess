@@ -112,37 +112,35 @@ export default function LeaderboardPage() {
 
   if (loading) {
     return (
-      <div className="container py-6 md:py-10">
-        <Skeleton className="h-8 w-3/4 md:w-1/3 mb-4" />
-        <Skeleton className="h-10 w-full mb-6" />
-        <Skeleton className="h-6 w-full mb-2" />
-        <Skeleton className="h-20 w-full mb-4" />
-        <div className="grid gap-4">
-          {[1, 2, 3].map((i) => (
-            <Skeleton key={i} className="h-16 w-full" />
-          ))}
+      <div className="main-container">
+        <div className="space-y-8">
+          <Skeleton className="h-10 w-1/4" />
+          <Skeleton className="h-12 w-full rounded-xl" />
+          <div className="space-y-6">
+            {[1, 2, 3].map((i) => (
+              <Skeleton key={i} className="h-20 w-full rounded-xl" />
+            ))}
+          </div>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="container py-6 md:py-10">
-      <h1 className="text-3xl font-bold mb-6 text-center">
-        <span className="bg-gradient-to-r from-[#FF1801] to-[#E10600] text-transparent bg-clip-text">Classifiche</span>
-      </h1>
+    <div className="main-container">
+      <h1 className="section-title mb-8">Classifiche</h1>
 
-      <Tabs defaultValue="grandprix" className="space-y-6">
-        <div className="flex justify-center mb-6">
-          <TabsList className="inline-flex bg-gray-100 dark:bg-gray-800 p-1 rounded-full">
-            <TabsTrigger value="grandprix" className="rounded-full px-4 py-2 data-[state=active]:bg-[#FF1801] data-[state=active]:text-white">
-              <div className="flex items-center gap-1.5">
+      <Tabs defaultValue="grandprix" className="space-y-8">
+        <div className="flex justify-center">
+          <TabsList className="bg-gray-100 dark:bg-gray-800 rounded-full p-1">
+            <TabsTrigger value="grandprix" className="rounded-full px-5 py-2 data-[state=active]:bg-[#e10600] data-[state=active]:text-white">
+              <div className="flex items-center gap-2">
                 <Trophy className="h-4 w-4" />
                 <span>Gran Premi</span>
               </div>
             </TabsTrigger>
-            <TabsTrigger value="global" className="rounded-full px-4 py-2 data-[state=active]:bg-[#FF1801] data-[state=active]:text-white">
-              <div className="flex items-center gap-1.5">
+            <TabsTrigger value="global" className="rounded-full px-5 py-2 data-[state=active]:bg-[#e10600] data-[state=active]:text-white">
+              <div className="flex items-center gap-2">
                 <Medal className="h-4 w-4" />
                 <span>Generale</span>
               </div>
@@ -152,45 +150,42 @@ export default function LeaderboardPage() {
 
         <TabsContent value="grandprix" className="space-y-6">
           {completedGrandPrix.length === 0 ? (
-            <Card className="overflow-hidden border border-gray-200 dark:border-gray-800 shadow-lg">
-              <div className="h-1 w-full bg-[#FF1801]"></div>
+            <Card className="overflow-hidden border border-gray-200 dark:border-gray-800 rounded-xl shadow-sm">
+              <div className="h-1.5 w-full bg-[#e10600]"></div>
               <CardContent className="p-6 text-center">
-                <p className="text-muted-foreground py-4">Nessun Gran Premio completato</p>
+                <p className="text-gray-500 dark:text-gray-400 py-4">Nessun Gran Premio completato</p>
               </CardContent>
             </Card>
           ) : (
             <>
-              <Card className="overflow-hidden border border-gray-200 dark:border-gray-800 shadow-lg">
-                <div className="h-1 w-full bg-[#FF1801]"></div>
-                <CardContent className="p-4">
-                  <Select value={selectedGrandPrix || undefined} onValueChange={setSelectedGrandPrix}>
-                    <SelectTrigger className="w-full rounded-lg">
-                      <SelectValue placeholder="Seleziona un Gran Premio" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {completedGrandPrix.map((gp) => (
-                        <SelectItem key={gp.id} value={gp.id}>
-                          {gp.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </CardContent>
-              </Card>
+              <div className="mb-6">
+                <Select value={selectedGrandPrix || undefined} onValueChange={setSelectedGrandPrix}>
+                  <SelectTrigger className="w-full rounded-xl h-12 border-gray-200 dark:border-gray-800 shadow-sm">
+                    <SelectValue placeholder="Seleziona un Gran Premio" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {completedGrandPrix.map((gp) => (
+                      <SelectItem key={gp.id} value={gp.id}>
+                        {gp.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
 
               {selectedGrandPrixDetails && (
-                <Card className="overflow-hidden border border-gray-200 dark:border-gray-800 shadow-lg bg-gradient-to-br from-[#0070f3]/15 to-[#00b4f3]/5">
-                  <div className="h-1 w-full bg-[#FF1801]"></div>
-                  <CardContent className="p-4 md:p-6">
-                    <div className="flex flex-col md:flex-row md:items-center md:justify-between">
+                <Card className="overflow-hidden border border-gray-200 dark:border-gray-800 rounded-xl shadow-sm">
+                  <div className="h-1.5 w-full bg-[#e10600]"></div>
+                  <CardContent className="px-6 py-5">
+                    <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                       <div>
                         <h2 className="text-xl font-bold">{selectedGrandPrixDetails.name}</h2>
-                        <div className="flex items-center text-sm text-muted-foreground mt-1">
-                          <Calendar className="h-4 w-4 mr-1" />
+                        <div className="flex items-center text-sm text-gray-500 dark:text-gray-400 mt-1">
+                          <Calendar className="h-4 w-4 mr-2" />
                           <span>{formatDate(selectedGrandPrixDetails.end_date)}</span>
                         </div>
                       </div>
-                      <Badge className="mt-2 md:mt-0 self-start md:self-auto bg-[#0070f3] text-white border-none px-3 py-1 rounded-full">
+                      <Badge className="self-start md:self-auto bg-[#e10600] text-white hover:bg-[#c00000] px-3 py-1 rounded-full">
                         COMPLETATO
                       </Badge>
                     </div>
@@ -199,15 +194,15 @@ export default function LeaderboardPage() {
               )}
 
               {grandPrixLeaderboard.length === 0 ? (
-                <Card className="overflow-hidden border border-gray-200 dark:border-gray-800 shadow-lg">
-                  <div className="h-1 w-full bg-[#FF1801]"></div>
+                <Card className="overflow-hidden border border-gray-200 dark:border-gray-800 rounded-xl shadow-sm">
+                  <div className="h-1.5 w-full bg-[#e10600]"></div>
                   <CardContent className="p-6 text-center">
-                    <p className="text-muted-foreground py-4">Nessun utente in classifica per questo Gran Premio</p>
+                    <p className="text-gray-500 dark:text-gray-400 py-4">Nessun utente in classifica per questo Gran Premio</p>
                   </CardContent>
                 </Card>
               ) : (
                 <div className="space-y-3">
-                  <div className="flex items-center justify-between px-4 py-2 bg-gray-50 dark:bg-gray-800 rounded-lg text-sm font-medium text-muted-foreground">
+                  <div className="flex items-center justify-between px-5 py-3 bg-gray-50 dark:bg-gray-800 rounded-xl text-sm font-medium text-gray-500 dark:text-gray-400">
                     <div className="flex items-center">
                       <span className="w-10 text-center">#</span>
                       <span>Utente</span>
@@ -219,31 +214,31 @@ export default function LeaderboardPage() {
                   </div>
 
                   {grandPrixLeaderboard.map((entry, index) => (
-                    <Card key={entry.id} className="overflow-hidden border border-gray-200 dark:border-gray-800 shadow-md">
-                      <div className={`h-1 w-full ${index < 3 ? 'bg-[#FF1801]' : 'bg-gray-200 dark:bg-gray-700'}`}></div>
-                      <CardContent className="p-3 md:p-4">
+                    <Card key={entry.id} className="overflow-hidden border border-gray-200 dark:border-gray-800 rounded-xl shadow-sm">
+                      <div className={`h-1.5 w-full ${index < 3 ? 'bg-[#e10600]' : 'bg-gray-200 dark:bg-gray-700'}`}></div>
+                      <CardContent className="p-4">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center">
                             <div className="w-10 flex justify-center">
                               {index === 0 ? (
-                                <div className="w-7 h-7 rounded-full bg-yellow-100 flex items-center justify-center">
+                                <div className="w-8 h-8 rounded-full bg-yellow-100 flex items-center justify-center">
                                   <Trophy className="h-4 w-4 text-yellow-500" />
                                 </div>
                               ) : index === 1 ? (
-                                <div className="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center">
+                                <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center">
                                   <Medal className="h-4 w-4 text-gray-400" />
                                 </div>
                               ) : index === 2 ? (
-                                <div className="w-7 h-7 rounded-full bg-amber-100 flex items-center justify-center">
+                                <div className="w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center">
                                   <Medal className="h-4 w-4 text-amber-700" />
                                 </div>
                               ) : (
-                                <span className="font-medium text-muted-foreground">{index + 1}</span>
+                                <span className="font-medium text-gray-500 dark:text-gray-400">{index + 1}</span>
                               )}
                             </div>
                             <div className="flex items-center">
-                              <div className="bg-[#FF1801]/10 text-[#FF1801] w-8 h-8 rounded-full flex items-center justify-center mr-2">
-                                <User className="h-4 w-4" />
+                              <div className="bg-[#e10600]/10 text-[#e10600] w-10 h-10 rounded-full flex items-center justify-center mr-3">
+                                <User className="h-5 w-5" />
                               </div>
                               <span className="font-medium truncate max-w-[150px] md:max-w-none">
                                 {entry.profiles.nickname || "Utente"}
@@ -251,8 +246,8 @@ export default function LeaderboardPage() {
                             </div>
                           </div>
                           <div className="flex items-center">
-                            <div className="font-bold text-lg">{entry.score}</div>
-                            <span className="text-xs text-muted-foreground ml-1">pt</span>
+                            <div className="font-bold text-xl">{entry.score}</div>
+                            <span className="text-sm text-gray-500 dark:text-gray-400 ml-1.5">pt</span>
                           </div>
                         </div>
                       </CardContent>
@@ -265,27 +260,27 @@ export default function LeaderboardPage() {
         </TabsContent>
 
         <TabsContent value="global" className="space-y-6">
-          <Card className="overflow-hidden border border-gray-200 dark:border-gray-800 shadow-lg bg-gradient-to-br from-[#FF1801]/10 to-[#E10600]/5">
-            <div className="h-1 w-full bg-[#FF1801]"></div>
-            <CardHeader className="pb-2">
-              <CardTitle className="flex items-center text-xl">
-                <Trophy className="mr-2 h-5 w-5 text-[#FFD700]" />
-                Classifica Generale
-              </CardTitle>
-              <CardDescription>Punti totali guadagnati in tutti i Gran Premi</CardDescription>
-            </CardHeader>
+          <Card className="overflow-hidden border border-gray-200 dark:border-gray-800 rounded-xl shadow-sm">
+            <div className="h-1.5 w-full bg-[#e10600]"></div>
+            <CardContent className="px-6 py-5">
+              <div className="flex items-center gap-3 mb-2">
+                <Trophy className="h-5 w-5 text-[#e10600]" />
+                <h2 className="text-xl font-bold">Classifica Generale</h2>
+              </div>
+              <p className="text-sm text-gray-500 dark:text-gray-400">Punti totali guadagnati in tutti i Gran Premi</p>
+            </CardContent>
           </Card>
 
           {globalLeaderboard.length === 0 ? (
-            <Card className="overflow-hidden border border-gray-200 dark:border-gray-800 shadow-lg">
-              <div className="h-1 w-full bg-[#FF1801]"></div>
+            <Card className="overflow-hidden border border-gray-200 dark:border-gray-800 rounded-xl shadow-sm">
+              <div className="h-1.5 w-full bg-[#e10600]"></div>
               <CardContent className="p-6 text-center">
-                <p className="text-muted-foreground py-4">Nessun utente in classifica</p>
+                <p className="text-gray-500 dark:text-gray-400 py-4">Nessun utente in classifica</p>
               </CardContent>
             </Card>
-          ) : (
+          ) :
             <div className="space-y-3">
-              <div className="flex items-center justify-between px-4 py-2 bg-gray-50 dark:bg-gray-800 rounded-lg text-sm font-medium text-muted-foreground">
+              <div className="flex items-center justify-between px-5 py-3 bg-gray-50 dark:bg-gray-800 rounded-xl text-sm font-medium text-gray-500 dark:text-gray-400">
                 <div className="flex items-center">
                   <span className="w-10 text-center">#</span>
                   <span>Utente</span>
@@ -297,31 +292,31 @@ export default function LeaderboardPage() {
               </div>
 
               {globalLeaderboard.map((user, index) => (
-                <Card key={user.id} className="overflow-hidden border border-gray-200 dark:border-gray-800 shadow-md">
-                  <div className={`h-1 w-full ${index < 3 ? 'bg-[#FF1801]' : 'bg-gray-200 dark:bg-gray-700'}`}></div>
-                  <CardContent className="p-3 md:p-4">
+                <Card key={user.id} className="overflow-hidden border border-gray-200 dark:border-gray-800 rounded-xl shadow-sm">
+                  <div className={`h-1.5 w-full ${index < 3 ? 'bg-[#e10600]' : 'bg-gray-200 dark:bg-gray-700'}`}></div>
+                  <CardContent className="p-4">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center">
                         <div className="w-10 flex justify-center">
                           {index === 0 ? (
-                            <div className="w-7 h-7 rounded-full bg-yellow-100 flex items-center justify-center">
+                            <div className="w-8 h-8 rounded-full bg-yellow-100 flex items-center justify-center">
                               <Trophy className="h-4 w-4 text-yellow-500" />
                             </div>
                           ) : index === 1 ? (
-                            <div className="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center">
+                            <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center">
                               <Medal className="h-4 w-4 text-gray-400" />
                             </div>
                           ) : index === 2 ? (
-                            <div className="w-7 h-7 rounded-full bg-amber-100 flex items-center justify-center">
+                            <div className="w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center">
                               <Medal className="h-4 w-4 text-amber-700" />
                             </div>
                           ) : (
-                            <span className="font-medium text-muted-foreground">{index + 1}</span>
+                            <span className="font-medium text-gray-500 dark:text-gray-400">{index + 1}</span>
                           )}
                         </div>
                         <div className="flex items-center">
-                          <div className="bg-[#FF1801]/10 text-[#FF1801] w-8 h-8 rounded-full flex items-center justify-center mr-2">
-                            <User className="h-4 w-4" />
+                          <div className="bg-[#e10600]/10 text-[#e10600] w-10 h-10 rounded-full flex items-center justify-center mr-3">
+                            <User className="h-5 w-5" />
                           </div>
                           <span className="font-medium truncate max-w-[150px] md:max-w-none">
                             {user.nickname || "Utente"}
@@ -329,15 +324,15 @@ export default function LeaderboardPage() {
                         </div>
                       </div>
                       <div className="flex items-center">
-                        <div className="font-bold text-lg">{user.total_score}</div>
-                        <span className="text-xs text-muted-foreground ml-1">pt</span>
+                        <div className="font-bold text-xl">{user.total_score}</div>
+                        <span className="text-sm text-gray-500 dark:text-gray-400 ml-1.5">pt</span>
                       </div>
                     </div>
                   </CardContent>
                 </Card>
               ))}
             </div>
-          )}
+          }
         </TabsContent>
       </Tabs>
     </div>

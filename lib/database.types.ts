@@ -79,6 +79,8 @@ export interface Database {
           status: string
           created_at: string
           updated_at: string
+          country_code: string | null
+          location: string | null
         }
         Insert: {
           id?: string
@@ -88,6 +90,8 @@ export interface Database {
           status?: string
           created_at?: string
           updated_at?: string
+          country_code?: string | null
+          location?: string | null
         }
         Update: {
           id?: string
@@ -97,6 +101,8 @@ export interface Database {
           status?: string
           created_at?: string
           updated_at?: string
+          country_code?: string | null
+          location?: string | null
         }
         Relationships: []
       }
