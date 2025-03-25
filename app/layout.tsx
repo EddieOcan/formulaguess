@@ -40,7 +40,7 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-capable" content="yes"></meta>
         <meta name="apple-mobile-web-app-status-bar-style" content="default"></meta>
       </head>
-      <body className={`${bricolage.variable} font-sans min-h-screen bg-neutral-50 dark:bg-neutral-900 antialiased`}>
+      <body className={`${bricolage.variable} font-sans min-h-screen bg-neutral-50 dark:bg-neutral-800 antialiased`}>
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
           <SupabaseProvider>
             <AppStateWrapper>

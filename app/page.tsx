@@ -1,9 +1,148 @@
+"use client"
+
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import Link from "next/link"
-import { Trophy, Calendar, Users, Award, ChevronRight, Flag, Star, Check } from "lucide-react"
+import { Trophy, Calendar, Users, Award, ChevronRight, Flag, Star, Check, BarChart3 } from "lucide-react"
+import { useSupabase } from "@/lib/supabase-provider"
+import { useEffect } from "react"
+import { useRouter } from "next/navigation"
 
 export default function Home() {
+  const { isAuthenticated, isLoading, refreshUserState } = useSupabase()
+  const router = useRouter()
+
+  // Se l'utente è già autenticato, mostra contenuti personalizzati
+  useEffect(() => {
+    // Aggiorna lo stato quando la pagina viene caricata
+    if (!isLoading) {
+      refreshUserState()
+    }
+  }, [refreshUserState, isLoading])
+
+  // Se l'utente è autenticato, mostriamo una versione diversa della home
+  if (isAuthenticated && !isLoading) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <section className="py-12 md:py-16">
+          <div className="container px-4 md:px-6">
+            <div className="flex flex-col space-y-4">
+              <h1 className="text-3xl font-bold tracking-tighter sm:text-5xl">
+                <span className="bg-gradient-to-r from-[#FF1801] to-[#E10600] text-transparent bg-clip-text">Bentornato in</span>{" "}
+                <span className="font-bold">Formula Guess</span>
+              </h1>
+              <p className="text-xl text-muted-foreground max-w-[700px]">
+                Continua a fare previsioni e competere nella classifica
+              </p>
+            </div>
+            <div className="grid gap-6 mt-8 md:grid-cols-3">
+              <Link href="/dashboard">
+                <Card className="hover:shadow-md transition-all duration-200 cursor-pointer">
+                  <CardHeader>
+                    <BarChart3 className="h-8 w-8 text-primary mb-2" />
+                    <CardTitle>Dashboard</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <CardDescription>
+                      Visualizza le tue statistiche, punteggi e posizione in classifica
+                    </CardDescription>
+                  </CardContent>
+                </Card>
+              </Link>
+              <Link href="/predictions">
+                <Card className="hover:shadow-md transition-all duration-200 cursor-pointer">
+                  <CardHeader>
+                    <Calendar className="h-8 w-8 text-primary mb-2" />
+                    <CardTitle>Previsioni</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <CardDescription>
+                      Visualizza i prossimi Gran Premi e fai le tue previsioni
+                    </CardDescription>
+                  </CardContent>
+                </Card>
+              </Link>
+              <Link href="/leaderboard">
+                <Card className="hover:shadow-md transition-all duration-200 cursor-pointer">
+                  <CardHeader>
+                    <Trophy className="h-8 w-8 text-primary mb-2" />
+                    <CardTitle>Classifiche</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <CardDescription>
+                      Controlla la classifica generale e di ogni Gran Premio
+                    </CardDescription>
+                  </CardContent>
+                </Card>
+              </Link>
+            </div>
+          </div>
+        </section>
+        
+        <section className="py-12 md:py-24 bg-muted/30 rounded-xl f1-pattern">
+          <div className="container px-4 md:px-6">
+            <div className="flex flex-col items-center justify-center space-y-4 text-center">
+              <div className="space-y-2">
+                <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl f1-heading">Come Funziona</h2>
+                <p className="mx-auto max-w-[700px] text-muted-foreground md:text-xl">
+                  Fai le tue previsioni sui Gran Premi di Formula 1 e guadagna punti in base all'accuratezza
+                </p>
+              </div>
+            </div>
+            <div className="mx-auto grid max-w-5xl grid-cols-1 gap-6 py-12 md:grid-cols-3">
+              <Card className="f1-card">
+                <CardHeader className="flex flex-row items-center gap-4">
+                  <div className="bg-primary/10 p-2 rounded-full">
+                    <Calendar className="h-8 w-8 text-primary" />
+                  </div>
+                  <div className="grid gap-1">
+                    <CardTitle>Scegli il Gran Premio</CardTitle>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <CardDescription>
+                    Seleziona il Gran Premio attivo e fai le tue previsioni su vari eventi come podio, giro veloce e altro
+                  </CardDescription>
+                </CardContent>
+              </Card>
+              <Card className="f1-card f1-card-accent">
+                <CardHeader className="flex flex-row items-center gap-4">
+                  <div className="bg-accent/10 p-2 rounded-full">
+                    <Users className="h-8 w-8 text-accent" />
+                  </div>
+                  <div className="grid gap-1">
+                    <CardTitle>Fai le tue Previsioni</CardTitle>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <CardDescription>
+                    Per ogni evento, scegli il pilota che pensi vincerà o otterrà il risultato previsto
+                  </CardDescription>
+                </CardContent>
+              </Card>
+              <Card className="f1-card f1-card-success">
+                <CardHeader className="flex flex-row items-center gap-4">
+                  <div className="bg-success/10 p-2 rounded-full">
+                    <Trophy className="h-8 w-8 text-success" />
+                  </div>
+                  <div className="grid gap-1">
+                    <CardTitle>Guadagna Punti</CardTitle>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <CardDescription>
+                    Ottieni punti per ogni previsione corretta e scala la classifica generale
+                  </CardDescription>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        </section>
+      </div>
+    )
+  }
+
+  // Versione per utenti non autenticati
   return (
     <div className="container mx-auto px-4 py-8">
       <section className="py-12 md:py-24">

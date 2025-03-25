@@ -124,7 +124,7 @@ export default function Header() {
 
         {/* Menu desktop */}
         <div className="hidden md:flex md:items-center md:gap-6">
-          <nav className="flex items-center space-x-1 rounded-lg border bg-white/50 dark:bg-neutral-800/50 backdrop-blur-sm p-1 shadow-sm">
+          <nav className="flex items-center space-x-1 rounded-lg border bg-white/50 dark:bg-neutral-700/50 backdrop-blur-sm p-1 shadow-sm">
             <Link href="/" className="inline-flex items-center justify-center rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-[var(--f1-red)] hover:text-white focus:bg-[var(--f1-red)] focus:text-white focus:outline-none">
               <Home className="mr-2 h-4 w-4" />
               Home
@@ -231,6 +231,8 @@ export default function Header() {
           >
             <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
           </Button>
+          
+          <ModeToggle />
           
           <Sheet open={isMenuOpen} onOpenChange={setIsMenuOpen}>
             <SheetTrigger asChild>

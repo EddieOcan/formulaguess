@@ -35,24 +35,24 @@
 }
 
 .dark {
-  --background: 240 10% 6%;
+  --background: 240 10% 12%;
   --foreground: 0 0% 98%;
-  --card: 240 10% 8%;
+  --card: 240 10% 14%;
   --card-foreground: 0 0% 98%;
-  --popover: 240 10% 8%;
+  --popover: 240 10% 14%;
   --popover-foreground: 0 0% 98%;
   --primary: 358 100% 44%;
   --primary-foreground: 0 0% 98%;
   --secondary: 346 100% 40%;
   --secondary-foreground: 0 0% 98%;
-  --muted: 240 3.7% 15.9%;
-  --muted-foreground: 240 5% 64.9%;
-  --accent: 240 3.7% 15.9%;
+  --muted: 240 3.7% 22%;
+  --muted-foreground: 240 5% 74.9%;
+  --accent: 240 3.7% 22%;
   --accent-foreground: 0 0% 98%;
   --destructive: 0 62.8% 30.6%;
   --destructive-foreground: 0 0% 98%;
-  --border: 240 3.7% 15.9%;
-  --input: 240 3.7% 15.9%;
+  --border: 240 3.7% 26%;
+  --input: 240 3.7% 26%;
   --ring: 358 100% 44%;
 }
 
@@ -123,7 +123,7 @@
 }
 
 .f1-header {
-  @apply sticky top-0 z-50 w-full border-b border-gray-200 dark:border-gray-800 bg-white/80 dark:bg-neutral-900/80 backdrop-blur-sm;
+  @apply sticky top-0 z-50 w-full border-b border-gray-200 dark:border-gray-700 bg-white/80 dark:bg-neutral-800/80 backdrop-blur-sm;
 }
 
 /* Stili per le scrollbar più eleganti */
