@@ -18,9 +18,6 @@ import { Progress } from "@/components/ui/progress"
 import { Separator } from "@/components/ui/separator"
 import ReactCountryFlag from "react-country-flag"
 import { useToast } from "@/components/ui/use-toast"
-import withAuth from "@/lib/with-auth"
-import { useSupabaseQuery } from "@/hooks/use-supabase-query"
-import { Loader2 } from "lucide-react"
 
 // Mappa dei colori dei team F1 per le card delle previsioni
 const teamColors: Record<string, { primary: string; secondary: string; lighter: string; gradient: string }> = {
@@ -167,18 +164,17 @@ type GrandPrix = Database["public"]["Tables"]["grand_prix"]["Row"] & {
   country_code?: string | null;
 }
 
-// Definizione di tipo per le previsioni
-type Prediction = {
-  id: string;
-  [key: string]: any;
+type Prediction = Database["public"]["Tables"]["predictions"]["Row"] & {
+  events: Database["public"]["Tables"]["events"]["Row"];
+  score?: number;
+  driver_id?: string;
 }
 
 type Leaderboard = Database["public"]["Tables"]["leaderboards"]["Row"] & {
   profiles: Database["public"]["Tables"]["profiles"]["Row"]
 }
 
-function DashboardPage() {
-  const { userEmail } = useSupabase()
+export default function Dashboard() {
   const { supabase } = useSupabase()
   const router = useRouter()
   const [loading, setLoading] = useState(true)
@@ -189,17 +185,6 @@ function DashboardPage() {
   const [userScore, setUserScore] = useState<number>(0)
   const [isAdmin, setIsAdmin] = useState(false)
   const { toast } = useToast()
-
-  // Utilizziamo il nostro hook personalizzato per caricare i dati
-  const { data: predictions, isLoading, error, refetch } = useSupabaseQuery<Prediction[]>(
-    (supabase) => supabase.from('predictions').select('*'),
-    [], // dipendenze
-    {
-      requireAuth: true,
-      retries: 2,
-      onError: (err) => console.error("Errore nel caricamento delle previsioni:", err)
-    }
-  )
 
   useEffect(() => {
     const checkUser = async () => {
@@ -314,66 +299,143 @@ function DashboardPage() {
   }
 
   return (
-    <div className="container mx-auto py-8 px-4">
-      <h1 className="text-3xl font-bold mb-6">Dashboard</h1>
+    <div className="main-container">
+      <h1 className="section-title mb-8">Dashboard</h1>
       
-      <div className="mb-8">
-        <Card className="bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm">
-          <CardHeader>
-            <CardTitle>Benvenuto, {userEmail || "Utente"}</CardTitle>
-            <CardDescription>
-              Da qui puoi visualizzare le tue previsioni e i tuoi punteggi
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {isLoading ? (
-              <div className="flex justify-center p-6">
-                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      {/* Card di riepilogo */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+        <Card className="overflow-hidden border border-gray-200 dark:border-gray-800 rounded-xl shadow-sm">
+          <div className="h-1.5 w-full bg-[#e10600]"></div>
+          <div className="p-6">
+            <div className="flex items-center text-[#e10600] mb-3">
+              <Trophy className="h-5 w-5 mr-2" />
+              <h3 className="font-medium">Posizione in classifica</h3>
+            </div>
+            
+            <div className="mt-4 mb-3">
+              <div className="flex flex-col">
+                <div className="text-3xl font-bold">
+                  {userRank !== null ? `${userRank}°` : "-"}
+                </div>
+                <div className="text-sm text-gray-500 mt-1">
+                  {totalUsers > 0 ? `su ${totalUsers} partecipanti` : ""}
+                </div>
               </div>
-            ) : error ? (
-              <div className="bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-200 p-4 rounded-md">
-                <p>Si è verificato un errore nel caricamento dei dati.</p>
-                <Button variant="outline" onClick={() => refetch()} className="mt-2">
-                  Riprova
-                </Button>
+            </div>
+            
+            <Link 
+              href="/leaderboard"
+              className="text-xs flex items-center text-[#e10600] font-medium hover:underline mt-2"
+            >
+              Vedi classifica completa
+              <ChevronRight className="h-3 w-3 ml-1" />
+            </Link>
+          </div>
+        </Card>
+
+        <Card className="overflow-hidden border border-gray-200 dark:border-gray-800 rounded-xl shadow-sm">
+          <div className="h-1.5 w-full bg-[#e10600]"></div>
+          <div className="p-6">
+            <div className="flex items-center text-[#e10600] mb-3">
+              <Flag className="h-5 w-5 mr-2" />
+              <h3 className="font-medium">Punteggio totale</h3>
+            </div>
+            
+            <div className="mt-4 mb-3">
+              <div className="flex flex-col">
+                <div className="text-3xl font-bold">
+                  {userScore}
+                </div>
+                <div className="text-sm text-gray-500 mt-1">
+                  Punti guadagnati nelle previsioni
+                </div>
               </div>
-            ) : (
-              <div>
-                {predictions && predictions.length > 0 ? (
-                  <div className="grid gap-4">
-                    {predictions.map((prediction) => (
-                      <div key={prediction.id} className="border rounded-md p-4">
-                        {/* Renderizza i dettagli della previsione */}
-                        <pre className="text-xs">{JSON.stringify(prediction, null, 2)}</pre>
-                      </div>
-                    ))}
+            </div>
+          </div>
+        </Card>
+
+        <Card className="overflow-hidden border border-gray-200 dark:border-gray-800 rounded-xl shadow-sm">
+          <div className="h-1.5 w-full bg-[#e10600]"></div>
+          <div className="p-6">
+            <div className="flex items-center text-[#e10600] mb-3">
+              <Calendar className="h-5 w-5 mr-2" />
+              <h3 className="font-medium">Prossimo Gran Premio</h3>
+            </div>
+            
+            {activeGrandPrix ? (
+              <div className="mt-4">
+                <div className="flex items-center gap-3">
+                  {activeGrandPrix.country_code && (
+                    <div className="flex-shrink-0">
+                      <ReactCountryFlag 
+                        countryCode={activeGrandPrix.country_code} 
+                        svg 
+                        style={{
+                          width: '2.5em',
+                          height: '2.5em',
+                          borderRadius: '50%',
+                          objectFit: 'cover',
+                          boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                        }}
+                        title={activeGrandPrix.country_code}
+                      />
+                    </div>
+                  )}
+                  <div>
+                    <div className="text-xl font-bold">
+                      {activeGrandPrix.name}
+                    </div>
+                    <div className="text-sm text-gray-500 mt-1">
+                      {new Date(activeGrandPrix.start_date).toLocaleDateString("it-IT", {
+                        day: "numeric",
+                        month: "long",
+                        year: "numeric",
+                      })}
+                    </div>
                   </div>
-                ) : (
-                  <p>Non hai ancora fatto previsioni.</p>
+                </div>
+                
+                {activeGrandPrix.location && (
+                  <div className="flex items-center text-sm text-gray-500 mt-3">
+                    <Flag className="h-4 w-4 mr-2" />
+                    {activeGrandPrix.location}
+                  </div>
                 )}
               </div>
+            ) : (
+              <div className="text-xl font-bold mt-4">
+                Nessun Gran Premio attivo
+              </div>
             )}
-          </CardContent>
-          <CardFooter>
-            <Button variant="outline" onClick={() => refetch()} disabled={isLoading}>
-              {isLoading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Aggiornamento...
-                </>
-              ) : (
-                "Aggiorna dati"
-              )}
-            </Button>
-          </CardFooter>
+          </div>
         </Card>
+      </div>
+
+      <div className="space-y-10">
+        {/* Sezione Gran Premio attivo e previsioni */}
+        <div>
+          <Tabs defaultValue="upcoming" className="w-full">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-medium">Gran Premi e Previsioni</h2>
+              <TabsList className="bg-gray-100 dark:bg-gray-800 rounded">
+                <TabsTrigger value="upcoming" className="rounded text-sm">Prossimi</TabsTrigger>
+                <TabsTrigger value="history" className="rounded text-sm">Storico</TabsTrigger>
+              </TabsList>
+            </div>
+            
+            <TabsContent value="upcoming" className="mt-0">
+              <UpcomingGrandPrix userPredictions={userPredictions} />
+            </TabsContent>
+            
+            <TabsContent value="history" className="mt-0">
+              <PredictionHistory />
+            </TabsContent>
+          </Tabs>
+        </div>
       </div>
     </div>
   )
 }
-
-// Proteggiamo la pagina con il nostro HOC
-export default withAuth(DashboardPage)
 
 function UpcomingGrandPrix({ userPredictions }: { userPredictions: Prediction[] }) {
   const { supabase } = useSupabase()
