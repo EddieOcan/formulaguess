@@ -1,29 +1,64 @@
 "use client"
 
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { useSupabase } from "@/lib/supabase-provider"
+import LoadingFallback from "./loading-fallback"
 
 export default function AppStateWrapper({ children }: { children: React.ReactNode }) {
-  const { refreshUserState } = useSupabase()
+  const { refreshUserState, isLoading, initComplete } = useSupabase()
+  const [pageLoading, setPageLoading] = useState(true)
   const router = useRouter()
 
-  // Semplice effetto per aggiornare lo stato quando la finestra torna in focus
+  // Effetto per gestire il caricamento iniziale della pagina
   useEffect(() => {
+    // Se l'inizializzazione dell'auth è completa, possiamo nascondere il loading
+    if (initComplete) {
+      // Aggiungiamo un breve delay per evitare flickering
+      const timer = setTimeout(() => {
+        setPageLoading(false)
+      }, 300)
+      
+      return () => clearTimeout(timer)
+    }
+  }, [initComplete])
+
+  // Aggiorna lo stato quando la finestra torna in focus
+  useEffect(() => {
+    let lastRefresh = Date.now()
+    
     const handleVisibilityChange = async () => {
       if (document.visibilityState === "visible") {
-        await refreshUserState()
+        // Limita il refresh a una volta ogni 30 secondi
+        const now = Date.now()
+        if (now - lastRefresh > 30000) {
+          lastRefresh = now
+          await refreshUserState()
+        }
       }
-    };
+    }
 
-    // Aggiungi l'event listener
-    document.addEventListener("visibilitychange", handleVisibilityChange);
-
-    // Cleanup
+    // Aggiungiamo un listener per il cambio di visibilità della pagina
+    document.addEventListener("visibilitychange", handleVisibilityChange)
+    
+    // Aggiungiamo un listener per l'evento online
+    const handleOnline = () => {
+      console.log("Connessione ripristinata, aggiorno lo stato")
+      refreshUserState()
+    }
+    
+    window.addEventListener("online", handleOnline)
+    
     return () => {
-      document.removeEventListener("visibilitychange", handleVisibilityChange);
-    };
-  }, [refreshUserState]);
+      document.removeEventListener("visibilitychange", handleVisibilityChange)
+      window.removeEventListener("online", handleOnline)
+    }
+  }, [refreshUserState])
 
-  return <>{children}</>;
+  // Mostra il fallback durante l'inizializzazione o quando l'app è in caricamento
+  if (pageLoading || !initComplete || isLoading) {
+    return <LoadingFallback />
+  }
+
+  return <>{children}</>
 } 

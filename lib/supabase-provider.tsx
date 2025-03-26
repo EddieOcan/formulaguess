@@ -15,17 +15,24 @@ type SupabaseContext = {
   refreshUserState: () => Promise<void>
   isAuthenticated: boolean
   userEmail: string | null
+  initComplete: boolean
 }
 
 const Context = createContext<SupabaseContext | undefined>(undefined)
 
-// Crea un singleton client per evitare di creare più istanze
+// Configurazione migliorata del client Supabase
 const supabaseClient = createClient<Database>(SUPABASE_URL, SUPABASE_ANON_KEY, {
   auth: {
     persistSession: true,
     autoRefreshToken: true,
+    storageKey: 'supabase-formula-guess-auth',
+    detectSessionInUrl: false,
+    flowType: 'pkce'
   }
 })
+
+// Attiva il refresh automatico dei token
+supabaseClient.auth.startAutoRefresh()
 
 export function SupabaseProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter()
@@ -33,77 +40,107 @@ export function SupabaseProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true)
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [userEmail, setUserEmail] = useState<string | null>(null)
+  const [initComplete, setInitComplete] = useState(false)
 
-  // Funzione semplificata per verificare l'utente
-  const checkUser = async () => {
+  // Recupera la sessione all'avvio
+  const initializeAuth = async () => {
     try {
       setIsLoading(true)
-      const { data, error } = await supabaseClient.auth.getUser()
       
-      if (error || !data.user) {
-        console.log("Nessun utente autenticato")
-        setIsAuthenticated(false)
-        setIsAdmin(false)
-        setUserEmail(null)
+      // Primo tentativo: recupera la sessione esistente
+      const { data: sessionData, error: sessionError } = await supabaseClient.auth.getSession()
+      
+      if (sessionError) {
+        console.error("Errore nel recupero della sessione:", sessionError)
+        resetAuthState()
         return
       }
       
-      // L'utente è autenticato
-      setIsAuthenticated(true)
-      setUserEmail(data.user.email || null)
-      
-      // Verifica il ruolo admin
-      const { data: profileData } = await supabaseClient
-        .from("profiles")
-        .select("role")
-        .eq("id", data.user.id)
-        .single()
-      
-      setIsAdmin(profileData?.role === "admin")
+      if (sessionData?.session) {
+        const { data: userData, error: userError } = await supabaseClient.auth.getUser()
+        
+        if (userError || !userData.user) {
+          console.log("Sessione presente ma utente non recuperabile, effettuo logout")
+          await supabaseClient.auth.signOut()
+          resetAuthState()
+          return
+        }
+        
+        // Utente autenticato con successo
+        setIsAuthenticated(true)
+        setUserEmail(userData.user.email || null)
+        
+        // Recupera info profilo
+        try {
+          const { data: profileData, error: profileError } = await supabaseClient
+            .from("profiles")
+            .select("role")
+            .eq("id", userData.user.id)
+            .single()
+          
+          if (profileError) {
+            console.error("Errore nel recupero profilo:", profileError)
+            setIsAdmin(false)
+          } else {
+            setIsAdmin(profileData?.role === "admin")
+          }
+        } catch (profileError) {
+          console.error("Eccezione nel recupero profilo:", profileError)
+          setIsAdmin(false)
+        }
+      } else {
+        resetAuthState()
+      }
     } catch (error) {
-      console.error("Errore durante il controllo dell'utente:", error)
-      setIsAuthenticated(false)
-      setIsAdmin(false)
-      setUserEmail(null)
+      console.error("Errore durante l'inizializzazione auth:", error)
+      resetAuthState()
     } finally {
       setIsLoading(false)
+      setInitComplete(true)
     }
   }
-
-  // Funzione per aggiornare lo stato dell'utente
-  const refreshUserState = async () => {
-    await checkUser()
+  
+  const resetAuthState = () => {
+    setIsAuthenticated(false)
+    setIsAdmin(false)
+    setUserEmail(null)
   }
 
+  // Effetto per l'inizializzazione
   useEffect(() => {
-    // Verifica iniziale dell'utente
-    checkUser()
+    initializeAuth()
     
-    // Ascolta i cambiamenti di stato dell'autenticazione
-    const { data: authListener } = supabaseClient.auth.onAuthStateChange(async (event, session) => {
-      if (event === "SIGNED_IN" || event === "TOKEN_REFRESHED") {
-        await checkUser()
-      } else if (event === "SIGNED_OUT") {
-        setIsAuthenticated(false)
-        setIsAdmin(false)
-        setUserEmail(null)
+    const { data: authListener } = supabaseClient.auth.onAuthStateChange(
+      async (event, session) => {
+        console.log("Evento auth:", event)
+        
+        if (event === "SIGNED_IN" || event === "TOKEN_REFRESHED") {
+          initializeAuth()
+        } else if (event === "SIGNED_OUT") {
+          resetAuthState()
+        }
       }
-    })
+    )
 
     return () => {
       authListener.subscription.unsubscribe()
+      supabaseClient.auth.stopAutoRefresh()
     }
   }, [])
 
+  // Valore del contesto
+  const contextValue = {
+    supabase: supabaseClient,
+    isAdmin,
+    isLoading,
+    refreshUserState: initializeAuth,
+    isAuthenticated,
+    userEmail,
+    initComplete
+  }
+
   return (
-    <Context.Provider value={{ 
-      supabase: supabaseClient, 
-      isAdmin, 
-      isLoading, 
-      refreshUserState,
-      isAuthenticated,
-      userEmail
-    }}>
+    <Context.Provider value={contextValue}>
       {children}
     </Context.Provider>
   )
