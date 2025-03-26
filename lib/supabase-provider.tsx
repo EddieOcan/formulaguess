@@ -45,33 +45,42 @@ export function SupabaseProvider({ children }: { children: React.ReactNode }) {
   // Recupera la sessione all'avvio
   const initializeAuth = async () => {
     try {
+      console.log("INIT: Inizio inizializzazione autenticazione...")
       setIsLoading(true)
       
       // Primo tentativo: recupera la sessione esistente
+      console.log("INIT: Recupero sessione...")
       const { data: sessionData, error: sessionError } = await supabaseClient.auth.getSession()
       
       if (sessionError) {
-        console.error("Errore nel recupero della sessione:", sessionError)
+        console.error("INIT: Errore nel recupero della sessione:", sessionError)
         resetAuthState()
+        setIsLoading(false)
+        setInitComplete(true)
         return
       }
       
       if (sessionData?.session) {
+        console.log("INIT: Sessione trovata, recupero utente...")
         const { data: userData, error: userError } = await supabaseClient.auth.getUser()
         
         if (userError || !userData.user) {
-          console.log("Sessione presente ma utente non recuperabile, effettuo logout")
+          console.log("INIT: Sessione presente ma utente non recuperabile, effettuo logout")
           await supabaseClient.auth.signOut()
           resetAuthState()
+          setIsLoading(false)
+          setInitComplete(true)
           return
         }
         
         // Utente autenticato con successo
+        console.log("INIT: Utente autenticato:", userData.user.email)
         setIsAuthenticated(true)
         setUserEmail(userData.user.email || null)
         
         // Recupera info profilo
         try {
+          console.log("INIT: Recupero profilo utente...")
           const { data: profileData, error: profileError } = await supabaseClient
             .from("profiles")
             .select("role")
@@ -79,28 +88,32 @@ export function SupabaseProvider({ children }: { children: React.ReactNode }) {
             .single()
           
           if (profileError) {
-            console.error("Errore nel recupero profilo:", profileError)
+            console.error("INIT: Errore nel recupero profilo:", profileError)
             setIsAdmin(false)
           } else {
+            console.log("INIT: Profilo recuperato, ruolo:", profileData?.role)
             setIsAdmin(profileData?.role === "admin")
           }
         } catch (profileError) {
-          console.error("Eccezione nel recupero profilo:", profileError)
+          console.error("INIT: Eccezione nel recupero profilo:", profileError)
           setIsAdmin(false)
         }
       } else {
+        console.log("INIT: Nessuna sessione attiva")
         resetAuthState()
       }
     } catch (error) {
-      console.error("Errore durante l'inizializzazione auth:", error)
+      console.error("INIT: Errore durante l'inizializzazione auth:", error)
       resetAuthState()
     } finally {
+      console.log("INIT: Completata inizializzazione auth")
       setIsLoading(false)
       setInitComplete(true)
     }
   }
   
   const resetAuthState = () => {
+    console.log("INIT: Reset dello stato di autenticazione")
     setIsAuthenticated(false)
     setIsAdmin(false)
     setUserEmail(null)
@@ -108,11 +121,12 @@ export function SupabaseProvider({ children }: { children: React.ReactNode }) {
 
   // Effetto per l'inizializzazione
   useEffect(() => {
+    console.log("INIT: Avvio dell'effetto di inizializzazione")
     initializeAuth()
     
     const { data: authListener } = supabaseClient.auth.onAuthStateChange(
       async (event, session) => {
-        console.log("Evento auth:", event)
+        console.log("INIT: Evento auth:", event)
         
         if (event === "SIGNED_IN" || event === "TOKEN_REFRESHED") {
           initializeAuth()
@@ -123,6 +137,7 @@ export function SupabaseProvider({ children }: { children: React.ReactNode }) {
     )
 
     return () => {
+      console.log("INIT: Pulizia listener auth")
       authListener.subscription.unsubscribe()
       supabaseClient.auth.stopAutoRefresh()
     }
